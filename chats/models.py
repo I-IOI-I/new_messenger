@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
@@ -11,10 +12,14 @@ class Base(models.Model):
     class Meta:
         abstract = True
 
+    def __str__(self):
+        return f'chat {self.uuid}'
+
 
 class BaseChat(Base, PolymorphicModel):
     # PolymorphicModel это из отдельной библиотеки
-    users = models.ManyToManyField('core.User', through='ChatMember')
+    users = models.ManyToManyField('core.User', through='ChatMember', related_name='chats')
+    uuid = models.CharField(max_length=50, unique=True, default=uuid.uuid4)
 
     class Meta:
         verbose_name = 'чат'
@@ -94,13 +99,14 @@ class ChatMember(Base):
 
     class Meta:
         verbose_name = 'участник чата'
-        verbose_name_plural = 'участники чата'
+        verbose_name_plural = 'участники чатов'
 
     def __str__(self):
-        return f'{self.user.username} {self.chat.name}'
+        return f'{self.user.username} {self.chat.__str__()}'
 
 
 class Message(Base):
+    uuid = models.CharField(max_length=100, unique=True, default=uuid.uuid4)
     chat = models.ForeignKey(
         BaseChat,
         on_delete=models.CASCADE,

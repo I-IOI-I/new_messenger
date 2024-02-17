@@ -1,10 +1,25 @@
 from django.contrib import admin
 
-from chats.models import Message, BaseChat
+from chats.models import *
 
 
-@admin.register(BaseChat)
-class Chat(admin.ModelAdmin):
+@admin.register(DirectChat)
+class DirectChat(admin.ModelAdmin):
+    pass
+
+
+@admin.register(GroupChat)
+class GroupChat(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Channel)
+class Channel(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ChatMember)
+class ChatMember(admin.ModelAdmin):
     pass
 
 

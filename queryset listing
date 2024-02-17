@@ -1,0 +1,128 @@
+Создание объектов
+g_chat = GroupChat.objects.create(name="Групповой чат")
+chat.save()
+или
+g_chat2 =  GroupChat.objects.create(name ="Гр чат 2")
+
+Сохранение изменений в объектах
+g_chat.name = "Гр чат 1"
+g_chat.save()
+
+Сохранение полей ForeignKey и ManyToManyField
+user = User.objects.get(id=1)
+d_chat = DirectChat.objects.create(user1=user, user2=user)
+d_chat.user1 = user
+user2 = users.objects.get(id=2)
+user3 = users.objects.get(id=2)
+g_chat.users.set([user2, user3])
+g_chat.users.add(user1)
+
+Получение всех объектов
+g_chat.users.all()
+
+Получение определенных объектов с помощью фильтров
+BaseChat.objects.filter(date_created__year=2024)
+BaseChat.objects.exclude(date_created__month=1)
+
+Цепочки фильтров
+BaseChat.objects.filter(date_created__year=2024).exclude(date_created__month=1)
+
+Получение одного объекта с помощью get()
+User.objects.get(id=1)
+
+Ограничение QuerySet
+User.objects.all()[:5]
+User.objects.all()[5:10]
+User.objects.all()[::2] # сразу выполняется запрос и возвращается в листа
+
+Лукапы
+User.objects.get(username__exact='timur')
+User.objects.get(username__iexact='timur')
+User.objects.get(username__contains='ti')
+User.objects.get(username__icontains='ti')
+User.objects.filter(id__in=[1,2,3])
+User.objects.filter(id_gt=5)
+User.objects.filter(id_gte=5)
+User.objects.filter(id_lt=5)
+User.objects.filter(id_lte=5)
+User.objects.filter(username__startswith='ti')
+User.objects.filter(username__istartswith='ti')
+User.objects.filter(username__endswith='ur')
+User.objects.filter(username__iendswith='ur')
+BaseChat.objects.filter(date_created__range=(datetime.date(2024,1,1), datetime.date(2024,6,1)))
+BaseChat.objects.filter(date_created__date=datetime.date(2005,1,1))
+BaseChat.objects.filter(date_created__year=2024)
+BaseChat.objects.filter(date_created__month=3)
+BaseChat.objects.filter(date_created__day=16)
+BaseChat.objects.filter(users__isnull=True)
+
+Поиск, который использует отношения
+Message.objects.filter(sender__username='timur')
+
+Многозначные отношения
+BaseChat.objects.filter(users__username__in=['1', 'timur'])
+
+Cсылка на поля модели
+GroupChat.objects.filter(users__username=F('name'))
+
+Кэширование QuerySet
+print([u.username for u in User.objects.all()])
+list(User.objects.all())
+user in User.objects.all()
+
+Сложные поиски с объектами Q
+User.objects.filter(Q(username='timur')|Q(chats__date_created__year=2024))
+
+Копирование экземпляров модели
+user.pk= None
+user.username = '2'
+user.save()
+
+Обновление нескольких объектов одновременно
+User.objects.update(first_name="BABABa")
+
+Дополнительные методы для обработки связанных объектов
+m = user.messages.create(chat=chat, text='Привет')
+user.messages.remove(m)
+
+Методы, которые возвращают новый QuerySet
+User.objects.annotate(messages_number=Count("messages"))
+User.objects.alias(messages_number=Count("messages")).filter(messages_number__gt=0)
+Message.objects.order_by('-date_created')
+Message.objects.order_by('-date_created').reverse()
+User.objects.filter(Q(username='timur')|Q(chats__date_created__year=2024)).distinct()
+User.objects.values_list('username', flat=True)
+BaseChat.objects.dates("date_created", "day")
+
+d_chats = DirectChats.objects.values_list('date_created')
+g_chats = GroupChats.objects.values_list('date_created')
+d_chats.union(g_chats)
+
+Message.objects.select_related('chat', 'sender')
+User.objects.prefetch_related('messages', 'chats')
+
+User.objects.only('username', 'last_name')
+
+Методы, которые не возвращают QuerySet
+GroupChat.objects.get_or_create(name='Гр чат 3')
+
+User.objects.update_or_create(
+   ...:     username="Bob",
+   ...:     defaults={"username": "Eric"},
+   ...:     create_defaults={"username": "Bob"},
+   ...: )
+
+User.objects.count()
+Message.objects.latest('date_created')
+chat.messages.earliest('date_created')
+Message.objects.all().delete()
+
+Агрегационные функции
+BaseChat.objects.annotate(users_number=Count('users')).aggregate(avg_users_number=Avg('users_number'))
+BaseChat.objects.values(messages_number=Count('messages')).aggregate(max_messages_number=Max('messages_number'))
+
+
+Класс Prefetch
+recent_messages = Message.objects.filter(date_created__gte=timezone.now()-timedelta(days=5))
+prefetch = Prefetch("messages", queryset=recent_messages)
+BaseChat.objects.prefetch_related(prefetch)
